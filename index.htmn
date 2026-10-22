@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MBTI로 포켓몬 찾기</title>
+    <!-- Tailwind CSS CDN for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        cream: {
+                            50: '#FFFDF0',
+                            100: '#FFF8E7',
+                            200: '#FFE893',
+                            300: '#FDE047',
+                            400: '#F59E0B',
+                            500: '#D97706',
+                            800: '#78350F',
+                            900: '#451A03',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Pretendard', '-apple-system', 'BlinkMacSystemFont', 'system-ui', 'Roboto', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            background-color: #FFFDF0;
+            color: #451A03;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Custom Floating Animation for Result Emoji */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-12px) rotate(3deg); }
+        }
+
+        .animate-float {
+            animation: float 3.5s ease-in-out infinite;
+        }
+
+        /* Fade and slide transitions */
+        .fade-in {
+            animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(16px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Soft warm shadow effects */
+        .shadow-warm {
+            box-shadow: 0 10px 25px -5px rgba(245, 158, 11, 0.12), 0 8px 10px -6px rgba(245, 158, 11, 0.08);
+        }
+
+        .shadow-warm-hover:hover {
+            box-shadow: 0 14px 28px -4px rgba(245, 158, 11, 0.22), 0 10px 12px -4px rgba(245, 158, 11, 0.12);
+            transform: translateY(-4px);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #FFF8E7;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #FCD34D;
+            border-radius: 9999px;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between py-6 px-4 sm:px-6 antialiased selection:bg-amber-200">
+
+    <!-- Header Section -->
+    <header class="max-w-3xl mx-auto w-full text-center mt-4 mb-8">
+        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-100/80 border border-amber-300 text-amber-900 font-semibold text-sm sm:text-base mb-4 shadow-sm">
+            <span class="animate-bounce">⚡</span> 나에게 딱 맞는 포켓몬은 누구일까?
+        </div>
+        <h1 class="text-3xl sm:text-5xl font-black text-amber-950 tracking-tight leading-tight mb-3">
+            MBTI로 포켓몬 찾기 🐾
+        </h1>
+        <p class="text-amber-800 text-base sm:text-lg font-medium max-w-lg mx-auto">
+            16가지 MBTI 유형 중 나의 성격을 선택하면, 나를 닮은 포켓몬과 환상의 짝꿍을 찾아드려요!
+        </p>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="max-w-3xl mx-auto w-full flex-grow">
+
+        <!-- STEP 1: MBTI Selection View -->
+        <section id="selection-section" class="fade-in">
+            
+            <!-- Category Filter Tabs -->
+            <div class="flex flex-wrap justify-center gap-2 mb-6">
+                <button onclick="filterMBTI('ALL')" class="filter-btn active-tab px-4 py-2 rounded-xl text-sm sm:text-base font-bold transition-all bg-amber-400 text-amber-950 shadow-sm hover:bg-amber-500">
+                    전체 보기
+                </button>
+                <button onclick="filterMBTI('NT')" class="filter-btn px-4 py-2 rounded-xl text-sm sm:text-base font-semibold transition-all bg-amber-100/70 text-amber-900 hover:bg-amber-200">
+                    🧠 분석가형 (NT)
+                </button>
+                <button onclick="filterMBTI('NF')" class="filter-btn px-4 py-2 rounded-xl text-sm sm:text-base font-semibold transition-all bg-amber-100/70 text-amber-900 hover:bg-amber-200">
+                    🌿 외교가형 (NF)
+                </button>
+                <button onclick="filterMBTI('SJ')" class="filter-btn px-4 py-2 rounded-xl text-sm sm:text-base font-semibold transition-all bg-amber-100/70 text-amber-900 hover:bg-amber-200">
+                    🛡️ 관리자형 (SJ)
+                </button>
+                <button onclick="filterMBTI('SP')" class="filter-btn px-4 py-2 rounded-xl text-sm sm:text-base font-semibold transition-all bg-amber-100/70 text-amber-900 hover:bg-amber-200">
+                    ⚡ 탐험가형 (SP)
+                </button>
+            </div>
+
+            <!-- MBTI Buttons Grid -->
+            <div id="mbti-grid" class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+                <!-- Buttons dynamically generated or structured via JS/HTML -->
+            </div>
+        </section>
+
+        <!-- STEP 2: Result View (Hidden by default) -->
+        <section id="result-section" class="hidden fade-in">
+            <div class="bg-white/90 backdrop-blur-sm border-2 border-amber-200 rounded-3xl p-6 sm:p-10 shadow-warm relative overflow-hidden">
+                
+                <!-- Top Badge -->
+                <div class="flex justify-between items-center mb-6">
+                    <span id="result-group" class="px-4 py-1.5 rounded-full text-xs sm:text-sm font-bold bg-amber-100 text-amber-900 border border-amber-300">
+                        그룹 영역
+                    </span>
+                    <span id="result-mbti-badge" class="px-4 py-1.5 rounded-full text-xs sm:text-sm font-black bg-amber-500 text-white shadow-sm">
+                        MBTI
+                    </span>
+                </div>
+
+                <!-- Main Pokemon Display -->
+                <div class="text-center mb-8">
+                    <div class="relative inline-block mb-4">
+                        <div class="w-32 h-32 sm:w-40 sm:h-40 rounded-full bg-gradient-to-tr from-amber-200 via-amber-100 to-yellow-100 flex items-center justify-center mx-auto shadow-inner border-4 border-amber-300/50">
+                            <span id="result-emoji" class="text-6xl sm:text-7xl animate-float select-none">
+                                😺
+                            </span>
+                        </div>
+                    </div>
+                    <p id="result-subtitle" class="text-amber-700 font-bold text-sm sm:text-base mb-1">
+                        포켓몬 수식어
+                    </p>
+                    <h2 id="result-pokemon" class="text-3xl sm:text-4xl font-black text-amber-950 tracking-tight">
+                        포켓몬 이름
+                    </h2>
+                </div>
+
+                <!-- Explanation / Reason Section -->
+                <div class="bg-[#FFF8E7] rounded-2xl p-5 sm:p-6 border border-amber-200 mb-6">
+                    <h3 class="text-base sm:text-lg font-extrabold text-amber-950 mb-3 flex items-center gap-2">
+                        <span>✨</span> 왜 이 포켓몬과 닮았을까요?
+                    </h3>
+                    <ul id="result-desc-list" class="space-y-2 text-amber-900 text-sm sm:text-base leading-relaxed">
+                        <!-- Description items inserted by JS -->
+                    </ul>
+                </div>
+
+                <!-- Best Match Chemistry Box -->
+                <div class="bg-gradient-to-r from-amber-100 via-amber-50 to-orange-100 rounded-2xl p-5 sm:p-6 border-2 border-amber-300/80 shadow-sm mb-8">
+                    <div class="flex items-center gap-2 text-amber-900 font-extrabold text-sm sm:text-base mb-2">
+                        <span class="text-xl">💖</span> 환상의 짝꿍 MBTI
+                    </div>
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white/80 p-4 rounded-xl border border-amber-200">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span id="match-mbti" class="text-lg font-black text-amber-900">ENFP</span>
+                                <span id="match-pokemon" class="text-sm font-bold text-amber-700 bg-amber-200/60 px-2 py-0.5 rounded-lg">피카츄 ⚡</span>
+                            </div>
+                            <p id="match-reason" class="text-xs sm:text-sm text-amber-800 mt-1 font-medium leading-normal">
+                                궁합 설명이 이곳에 들어갑니다.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Control Action Buttons -->
+                <div class="flex flex-col sm:flex-row gap-3 justify-center">
+                    <button onclick="resetSelection()" class="w-full sm:w-auto px-8 py-4 rounded-2xl bg-amber-400 hover:bg-amber-500 active:bg-amber-600 text-amber-950 font-black text-base sm:text-lg transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2">
+                        <span>🔄</span> 다시 고르기
+                    </button>
+                    <button onclick="copyResultToClipboard()" class="w-full sm:w-auto px-6 py-4 rounded-2xl bg-amber-100 hover:bg-amber-200 active:bg-amber-300 text-amber-900 font-bold text-base transition-all border border-amber-300 flex items-center justify-center gap-2">
+                        <span>📋</span> 결과 공유하기
+                    </button>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="text-center py-6 text-xs sm:text-sm text-amber-800/80 font-medium mt-8">
+        <p>따뜻하고 즐거운 포켓몬 MBTI 궁합 심리테스트 💛</p>
+    </footer>
+
+    <!-- Hidden Text Area for Clipboard Fallback -->
+    <textarea id="clipboard-area" class="hidden absolute -left-9999px" aria-hidden="true"></textarea>
+
+    <!-- Notification Toast Box -->
+    <div id="toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 bg-amber-950 text-amber-100 px-6 py-3 rounded-2xl font-bold text-sm shadow-xl transition-all duration-300 opacity-0 pointer-events-none z-50 flex items-center gap-2">
+        <span>✨</span> <span id="toast-message">클립보드에 복사되었습니다!</span>
+    </div>
+
+    <!-- JavaScript Data and Controller -->
+    <script>
+        // 16 MBTI Pokemon Database
+        const pokemonMBTI = {
+            INTJ: {
+                name: "후딘",
+                emoji: "🧠",
+                subtitle: "철저하고 용밀한 명검 분석가",
+                group: "분석가형 (NT)",
+                groupType: "NT",
+                desc: [
+                    "IQ 5000에 달하는 후딘처럼 놀라운 분석력과 초고속 두뇌 회전을 자랑해요.",
+                    "비상한 생각과 명확한 전략으로 어떤 상황에서도 완벽한 계획을 세워 해결합니다.",
+                    "독립심이 강하고 신중하여 타인의 시선에 연연하지 않고 자신의 길을 개척해요."
+                ],
+                bestMatch: "ENFP",
+                bestPokemon: "피카츄 ⚡",
+                bestReason: "톡톡 튀는 에너지를 가진 피카츄가 후딘의 깊은 생각에 유쾌하고 밝은 웃음을 선사해요!"
+            },
+            INTP: {
+                name: "뮤",
+                emoji: "🔮",
+                subtitle: "호기심 무한대의 신비한 연구가",
+                group: "분석가형 (NT)",
+                groupType: "NT",
+                desc: [
+                    "모든 기술을 배울 수 있는 뮤처럼 끝없는 지적 호기심과 잠재력을 품고 있어요.",
+                    "혼자만의 독창적인 생각에 잠기는 것을 즐기며 세상의 원리를 탐구하길 좋아해요.",
+                    "틀에 얽매이지 않고 자유로우며 관심 있는 분야엔 엄청난 몰입력을 보여줍니다."
+                ],
+                bestMatch: "ENTJ",
+                bestPokemon: "리자몽 🔥",
+                bestReason: "추진력 넘치는 리자몽이 뮤의 창의적인 아이디어를 현실로 멋지게 실현해 줍니다!"
+            },
+            ENTJ: {
+                name: "리자몽",
+                emoji: "🔥",
+                subtitle: "열정 가득한 카리스마 리더",
+                group: "분석가형 (NT)",
+                groupType: "NT",
+                desc: [
+                    "뜨거운 불꽃과 당당한 날개로 모두를 이끄는 리자몽처럼 단호하고 강력한 리더십을 가졌어요.",
+                    "목표가 설정되면 망설임 없이 도전하며 뛰어난 판단력으로 솔선수범합니다.",
+                    "어려운 난관에 봉착해도 특유의 강인함과 패기로 끝내 승리를 이끌어냅니다."
+                ],
+                bestMatch: "INTP",
+                bestPokemon: "뮤 🔮",
+                bestReason: "뮤의 영리하고 기발한 기획력이 리자몽의 강력한 실행력과 만나 최고의 시너지를 내요!"
+            },
+            ENTP: {
+                name: "로토무",
+                emoji: "⚡",
+                subtitle: "재치 만점 아이디어 발명가",
+                group: "분석가형 (NT)",
+                groupType: "NT",
+                desc: [
+                    "다양한 가전제품으로 변신하는 로토무처럼 임기응변과 재치가 뛰어난 솔루션 창재예요.",
+                    "지루함과 규범을 싫어하며 항상 새롭고 짜릿한 아이디어로 주변을 깜짝 놀라게 해요.",
+                    "어떠한 솔루션 모색이나 토론도 센스 있고 자신감 있게 주도하는 매력이 있습니다."
+                ],
+                bestMatch: "INFJ",
+                bestPokemon: "에브이 🔮",
+                bestReason: "마음을 깊게 읽어주는 에브이가 로토무의 통통 튀는 아이디어를 따뜻하게 응원해 줘요!"
+            },
+            INFJ: {
+                name: "에브이",
+                emoji: "🔮",
+                subtitle: "마음을 감싸는 예리한 통찰가",
+                group: "외교가형 (NF)",
+                groupType: "NF",
+                desc: [
+                    "바람의 흐름과 타인의 감정을 느끼는 에브이처럼 섬세하고 뛰어난 직관력을 가졌어요.",
+                    "조용하지만 확고한 신념이 있으며 주변 사람들의 행복과 화합을 진심으로 바라요.",
+                    "깊은 감수성과 따뜻한 마음씨로 말없이도 타인의 마음을 다정하게 위로합니다."
+                ],
+                bestMatch: "ENTP",
+                bestPokemon: "로토무 ⚡",
+                bestReason: "유능하고 유쾌한 로토무가 에브이의 진중한 일상에 기분 좋은 활력과 웃음을 더해줍니다!"
+            },
+            INFP: {
+                name: "이브이",
+                emoji: "✨",
+                subtitle: "무한한 가능성을 지닌 낭만가",
+                group: "외교가형 (NF)",
+                groupType: "NF",
+                desc: [
+                    "여러 모습으로 진화할 수 있는 이브이처럼 다재다능한 무궁무진한 가능성을 품고 있어요.",
+                    "풍부한 상상력과 낭만을 지녔으며 자신만의 가치관과 감성을 무척 중요하게 여겨요.",
+                    "상대방의 마음을 잘 이해하고 배려하는 순수하고 다정한 감성의 소유자입니다."
+                ],
+                bestMatch: "ENFJ",
+                bestPokemon: "토게키스 🕊️",
+                bestReason: "사랑과 배려가 가득한 토게키스가 이브이의 따뜻한 꿈을 진심으로 보듬고 이끌어 줘요!"
+            },
+            ENFJ: {
+                name: "토게키스",
+                emoji: "🕊️",
+                subtitle: "행복을 전하는 친선대사",
+                group: "외교가형 (NF)",
+                groupType: "NF",
+                desc: [
+                    "서로 아끼는 사람에게 행복을 선사하는 토게키스처럼 모두의 화합을 이끄는 포근한 리더예요.",
+                    "타인의 장점과 가능성을 잘 발견해 내며 긍정적인 온기로 주변을 환하게 밝혀요.",
+                    "친절하고 진정성 있는 태도로 모든 이들에게 안식처가 되어주는 사람입니다."
+                ],
+                bestMatch: "INFP",
+                bestPokemon: "이브이 ✨",
+                bestReason: "순수하고 풍부한 감성을 가진 이브이가 토게키스의 따뜻한 마음에 깊은 진정성을 보태줘요!"
+            },
+            ENFP: {
+                name: "피카츄",
+                emoji: "⚡",
+                subtitle: "톡톡 튀는 사랑스러운 비타민",
+                group: "외교가형 (NF)",
+                groupType: "NF",
+                desc: [
+                    "볼에서 전기를 발산하는 피카츄처럼 어디서나 매력이 밝게 빛나는 인기쟁이에요.",
+                    "새로운 도전과 사람들과의 만남을 즐기며 긍정적이고 순수한 에너지가 넘쳐요.",
+                    "솔직하고 활발한 매력으로 주변 사람들에게 해피 바이러스와 미소를 전합니다."
+                ],
+                bestMatch: "INTJ",
+                bestPokemon: "후딘 🧠",
+                bestReason: "후딘의 신중한 전략과 피카츄의 순수한 열정이 서로의 부족함을 완벽히 채워줘요!"
+            },
+            ISTJ: {
+                name: "거북왕",
+                emoji: "🐢",
+                subtitle: "묵묵히 자리를 지키는 든든한 파수꾼",
+                group: "관리자형 (SJ)",
+                groupType: "SJ",
+                desc: [
+                    "단단한 껍질로 신뢰를 주는 거북왕처럼 규칙과 원칙을 철저히 지키는 책임감의 대명사예요.",
+                    "한 번 맡은 일은 무슨 일이 있어도 깔끔하게 끝까지 성실히 완수해 냅니다.",
+                    "말보다는 행동으로 보여주며 내 사람들을 묵묵히 지키는 단단한 버팀목입니다."
+                ],
+                bestMatch: "ESFP",
+                bestPokemon: "라이츄 ⚡",
+                bestReason: "흥 넘치고 활기찬 라이츄가 신중한 거북왕의 일상에 기분 좋은 활력과 즐거움을 선물해요!"
+            },
+            ISFJ: {
+                name: "해피너스",
+                emoji: "💖",
+                subtitle: "포근하고 헌신적인 수호자",
+                group: "관리자형 (SJ)",
+                groupType: "SJ",
+                desc: [
+                    "상처받은 사람을 치료하는 행복의 해피너스처럼 다정하고 헌신적인 따뜻한 마음씨를 지녔어요.",
+                    "주변 사람들의 작은 변화나 필요도 세심하게 기억하여 챙겨주는 세심함이 있어요.",
+                    "보이지 않는 곳에서도 온화하고 정성 어린 조력으로 주변을 평화롭게 만들어 줍니다."
+                ],
+                bestMatch: "ESTP",
+                bestPokemon: "윈디 🦁",
+                bestReason: "열정적으로 달리는 윈디가 지쳤을 때 해피너스의 포근함이 가장 완벽한 쉼터가 되어줍니다!"
+            },
+            ESTJ: {
+                name: "이상해꽃",
+                emoji: "🌿",
+                subtitle: "체계적이고 당당한 솔선수범가",
+                group: "관리자형 (SJ)",
+                groupType: "SJ",
+                desc: [
+                    "커다란 꽃을 안정감 있게 피우는 이상해꽃처럼 뚜렷한 주관과 뛰어난 조직력을 가졌어요.",
+                    "현실 감각이 뛰어나며 일의 순서와 규칙을 명확히 정리하여 효율적으로 지휘해요.",
+                    "공정하고 단호하게 판단하여 팀과 그룹을 안정적으로 지탱하는 버팀목입니다."
+                ],
+                bestMatch: "ISFP",
+                bestPokemon: "메타몽 🫠",
+                bestReason: "유연하고 조화로운 메타몽이 이상해꽃의 철저한 일상에 여유와 부드러움을 더해줘요!"
+            },
+            ESFJ: {
+                name: "푸린",
+                emoji: "🎤",
+                subtitle: "모임의 분위기를 녹이는 사교가",
+                group: "관리자형 (SJ)",
+                groupType: "SJ",
+                desc: [
+                    "달콤한 자장가로 마음을 사로잡는 푸린처럼 사람들과 친밀하게 잘 어우러지는 친화력 왕이에요.",
+                    "타인의 감정을 잘 배려하고 인정과 칭찬을 아끼지 않아 늘 인기가 넘쳐납니다.",
+                    "모두가 조화롭고 즐겁게 지낼 수 있도록 상냥하고 분위기 있게 이끌어 주는 역할이에요."
+                ],
+                bestMatch: "ISTP",
+                bestPokemon: "잠만보 😴",
+                bestReason: "느긋하고 차분한 잠만보가 푸린의 풍부한 감정을 다정하게 다독여주며 안정감을 줍니다!"
+            },
+            ISTP: {
+                name: "잠만보",
+                emoji: "😴",
+                subtitle: "느긋하지만 필요할 땐 확실한 해결사",
+                group: "탐험가형 (SP)",
+                groupType: "SP",
+                desc: [
+                    "평소엔 느긋하다가도 중요한 순간엔 거대한 힘을 내는 잠만보처럼 요령 있고 효율적인 실속파예요.",
+                    "불필요한 에너지 소비는 피하고 객관적인 사실에 입각해 스마트하게 문제를 풀어나가요.",
+                    "마음이 침착하며 변화에 유연하고 자기만의 리듬을 소중히 지키는 스타일입니다."
+                ],
+                bestMatch: "ESFJ",
+                bestPokemon: "푸린 🎤",
+                bestReason: "살갑고 살뜰하게 챙겨주는 푸린이 느긋한 잠만보의 일상을 더욱 다채롭게 만들어 줘요!"
+            },
+            ISFP: {
+                name: "메타몽",
+                emoji: "🫠",
+                subtitle: "유연하고 온화한 감성 예술가",
+                group: "탐험가형 (SP)",
+                groupType: "SP",
+                desc: [
+                    "상대에 맞춰 모습을 바꾸는 메타몽처럼 포용력이 넓고 편안한 느낌을 주는 친구예요.",
+                    "온화하고 다정하며 경쟁보다는 조화와 평화를 중요하게 여깁니다.",
+                    "자기만의 깊은 감수성과 예쁜 예술적 감각을 소소하게 표현하는 매력이 있어요."
+                ],
+                bestMatch: "ESTJ",
+                bestPokemon: "이상해꽃 🌿",
+                bestReason: "확실하고 든든한 이상해꽃이 유연한 메타몽에게 확실한 방향성과 안도감을 선사해요!"
+            },
+            ESTP: {
+                name: "윈디",
+                emoji: "🦁",
+                subtitle: "거침없이 질주하는 스포티한 모험가",
+                group: "탐험가형 (SP)",
+                groupType: "SP",
+                desc: [
+                    "바람처럼 신속하게 달리는 윈디처럼 탁월한 행동력과 당찬 순발력을 보유하고 있어요.",
+                    "고민하기보다는 몸으로 직접 경험하며 어떤 돌발 상황도 순발력 있게 해결해요.",
+                    "시원시원하고 스릴을 즐기는 쿨한 성격으로 어디서나 분위기를 이끄는 활력소입니다."
+                ],
+                bestMatch: "ISFJ",
+                bestPokemon: "해피너스 💖",
+                bestReason: "에너지 넘치게 달리는 윈디를 해피너스가 섬세하고 든든하게 케어해 주는 최고의 짝꿍!"
+            },
+            ESFP: {
+                name: "라이츄",
+                emoji: "⚡",
+                subtitle: "어디서나 반짝이는 인싸 연예인",
+                group: "탐험가형 (SP)",
+                groupType: "SP",
+                desc: [
+                    "긴 꼬리로 멋진 에너지를 내는 라이츄처럼 넘치는 흥으로 좌중을 사로잡는 연예인 타입이에요.",
+                    "지금 이 순간을 신나게 즐기며 구김살 없는 미소와 위트로 웃음을 선물해요.",
+                    "어색한 분위기도 금세 사르르 녹여내는 사람 끌리는 밝은 호감형 인물입니다."
+                ],
+                bestMatch: "ISTJ",
+                bestPokemon: "거북왕 🐢",
+                bestReason: "단단하고 묵묵한 거북왕이 통통 튀는 라이츄의 가장 안심할 수 있는 중심축이 되어줍니다!"
+            }
+        };
+
+        let currentSelectedMBTI = null;
+
+        // Initialize UI Grid on Page Load
+        window.onload = function() {
+            renderMBTIGrid('ALL');
+        };
+
+        // Render MBTI Grid Buttons based on Filter
+        function renderMBTIGrid(filter) {
+            const gridContainer = document.getElementById('mbti-grid');
+            gridContainer.innerHTML = '';
+
+            Object.keys(pokemonMBTI).forEach(mbti => {
+                const data = pokemonMBTI[mbti];
+                if (filter !== 'ALL' && data.groupType !== filter) {
+                    return;
+                }
+
+                const button = document.createElement('button');
+                button.onclick = () => selectMBTI(mbti);
+                button.className = `
+                    bg-white hover:bg-amber-50 active:bg-amber-100 
+                    border-2 border-amber-200/90 hover:border-amber-400 
+                    rounded-2xl p-4 text-center transition-all duration-200 
+                    shadow-warm shadow-warm-hover flex flex-col items-center justify-between group
+                `;
+
+                button.innerHTML = `
+                    <div class="w-full flex justify-between items-center mb-2">
+                        <span class="text-xs font-bold px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 group-hover:bg-amber-200 transition-colors">
+                            ${data.groupType}
+                        </span>
+                        <span class="text-xl transform group-hover:scale-125 transition-transform duration-200">${data.emoji}</span>
+                    </div>
+                    <div class="my-1">
+                        <span class="block text-2xl font-black text-amber-950 tracking-wide group-hover:text-amber-600 transition-colors">${mbti}</span>
+                        <span class="block text-xs font-bold text-amber-700 mt-0.5">${data.name}</span>
+                    </div>
+                    <div class="mt-2 w-full pt-2 border-t border-amber-100 text-[11px] text-amber-800/80 font-medium truncate">
+                        ${data.subtitle}
+                    </div>
+                `;
+
+                gridContainer.appendChild(button);
+            });
+        }
+
+        // Handle Filter Button Clicks
+        function filterMBTI(group) {
+            // Update filter button visuals
+            const filterBtns = document.querySelectorAll('.filter-btn');
+            filterBtns.forEach(btn => {
+                btn.classList.remove('bg-amber-400', 'text-amber-950', 'shadow-sm', 'font-bold');
+                btn.classList.add('bg-amber-100/70', 'text-amber-900', 'font-semibold');
+            });
+
+            event.target.classList.remove('bg-amber-100/70', 'text-amber-900', 'font-semibold');
+            event.target.classList.add('bg-amber-400', 'text-amber-950', 'shadow-sm', 'font-bold');
+
+            renderMBTIGrid(group);
+        }
+
+        // Show Result Screen for selected MBTI
+        function selectMBTI(mbti) {
+            currentSelectedMBTI = mbti;
+            const data = pokemonMBTI[mbti];
+
+            // Fill Result Fields
+            document.getElementById('result-group').innerText = data.group;
+            document.getElementById('result-mbti-badge').innerText = mbti;
+            document.getElementById('result-emoji').innerText = data.emoji;
+            document.getElementById('result-subtitle').innerText = data.subtitle;
+            document.getElementById('result-pokemon').innerText = data.name;
+
+            // Fill Description List
+            const descList = document.getElementById('result-desc-list');
+            descList.innerHTML = '';
+            data.desc.forEach(text => {
+                const li = document.createElement('li');
+                li.className = 'flex items-start gap-2';
+                li.innerHTML = `<span class="text-amber-500 font-bold">•</span> <span>${text}</span>`;
+                descList.appendChild(li);
+            });
+
+            // Fill Best Match Info
+            document.getElementById('match-mbti').innerText = data.bestMatch;
+            document.getElementById('match-pokemon').innerText = data.bestPokemon;
+            document.getElementById('match-reason').innerText = data.bestReason;
+
+            // Switch views smoothly
+            const selectionSection = document.getElementById('selection-section');
+            const resultSection = document.getElementById('result-section');
+
+            selectionSection.classList.add('hidden');
+            resultSection.classList.remove('hidden');
+
+            // Scroll smoothly to top of result
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Reset to Selection View
+        function resetSelection() {
+            currentSelectedMBTI = null;
+            document.getElementById('result-section').classList.add('hidden');
+            document.getElementById('selection-section').classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Copy Result Summary to Clipboard
+        function copyResultToClipboard() {
+            if (!currentSelectedMBTI) return;
+            const data = pokemonMBTI[currentSelectedMBTI];
+
+            const shareText = `[MBTI로 포켓몬 찾기] 🐾\n나의 MBTI (${currentSelectedMBTI})에 딱 맞는 포켓몬은 바로 '${data.name} ${data.emoji}'입니다!\n\n✨ 환상의 짝꿍 MBTI: ${data.bestMatch} (${data.bestPokemon})\n나와 닮은 포켓몬을 확인해보세요!`;
+
+            // Reliable clipboard fallback for embedded iframe environments
+            const textArea = document.getElementById('clipboard-area');
+            textArea.value = shareText;
+            textArea.classList.remove('hidden');
+            textArea.select();
+            
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    showToast('결과가 클립보드에 복사되었습니다! 📋');
+                } else {
+                    showToast('복사에 실패했습니다. 직접 텍스트를 선택해 주세요.');
+                }
+            } catch (err) {
+                showToast('클립보드 복사를 지원하지 않는 브라우저입니다.');
+            } finally {
+                textArea.classList.add('hidden');
+            }
+        }
+
+        // Show Toast Notification Message
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toast-message');
+            toastMsg.innerText = msg;
+
+            toast.classList.remove('opacity-0', 'pointer-events-none');
+            toast.classList.add('opacity-100');
+
+            setTimeout(() => {
+                toast.classList.remove('opacity-100');
+                toast.classList.add('opacity-0', 'pointer-events-none');
+            }, 2600);
+        }
+    </script>
+</body>
+</html>
